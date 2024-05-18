@@ -1,0 +1,88 @@
+body {
+    background-color: #f7f7f7;
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    text-align: center;
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 400px;
+}
+
+h1 {
+    margin-bottom: 30px;
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffa500;  /* トパーズ色に変更 */
+}
+
+.form-group {
+    margin-bottom: 20px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.custom-file-label {
+    display: inline-block;
+    width: 100%;
+    padding: 15px;
+    border: 2px dashed #ddd;
+    border-radius: 12px;
+    background-color: #fff;
+    cursor: pointer;
+    text-align: center;
+    color: #999;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.custom-file-label:hover {
+    background-color: #f0f0f0;
+    border-color: #ccc;
+}
+
+.custom-upload-button {
+    display: inline-block;
+    width: 100%;
+    padding: 15px;
+    border-radius: 12px;
+    background-color: #ffa500;  /* トパーズ色に変更 */
+    border: none;
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-decoration: none;
+    margin-top: 10px;
+}
+
+.custom-upload-button:hover {
+    background-color: #cc8400;  /* トパーズ色に変更 */
+}
+
+#result {
+    margin-top: 20px;
+    text-align: center;
+}
+
+#result img {
+    max-width: 100%;
+    height: auto;
+    margin-top: 10px;
+    border-radius: 8px;
+}

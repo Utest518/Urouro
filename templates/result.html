@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>尿検査アプリ - 結果</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>検査結果</h1>
+        <div id="result"></div>
+        <button class="custom-upload-button" onclick="goBack()">戻る</button>
+    </div>
+    <script>
+        const colorDescriptions = {
+            "淡黄色": "健常者によく見られる色調です。健康です。",
+            "水様透明": "飲水過剰で希釈されている。健康です。",
+            "赤紅色": "非糸球体性血尿。腎尿路系の出血で主に認められます。通常赤血球は尿に出てきませんが、腎臓、尿管、膀胱、前立腺などが障害されたり炎症を起こすと血尿になります。",
+            "赤褐色": "糸球体性血尿です。",
+            "茶色褐色": "ビリルビン、ウロビリノーゲン尿に見られます。閉塞性黄疸や肝細胞傷害で認められます。ビリルビンはヘモグロビンが肝臓などで代謝された胆汁色素。通常は胆汁として胆管から便に排出され、尿には排出されません。",
+            "乳白灰白色": "ネフローゼ症候群で見られます。タンパク著増による表面張力の増加によるもので、多数の細かな泡沫を呈します。",
+            "乳白色": "白濁が見られます。細菌、白血球の増加した膿尿です。腎臓や膀胱が細菌に感染する尿路感染が疑われます。",
+            "褐色白色混合": "感染症に出血を伴った症例です。糖尿病性腎症などにより腎臓の細胞が傷ついて出血しているか、尿路感染による出血、尿路結石の可能性があります。",
+            "赤レンガピンク": "尿酸沈殿で、酸性尿で見られます。結石や痛風の原因になります。"
+        };
+
+        function getResultData() {
+            const params = new URLSearchParams(window.location.search);
+            return JSON.parse(params.get('data'));
+        }
+
+        function displayResult(data) {
+            const resultDiv = document.getElementById('result');
+            const detectedColor = data.detected_color;
+            const foamDetected = data.foam_detected;
+            const imagePath = data.image_path;
+
+            let resultHtml = `<p><strong>検出された色:</strong> ${detectedColor}</p>`;
+            resultHtml += `<p>${colorDescriptions[detectedColor] || "色の説明が見つかりません。"}</p>`;
+            resultHtml += `<p><strong>泡立ち:</strong> ${foamDetected ? 'あり' : 'なし'}</p>`;
+            if (foamDetected) {
+                resultHtml += `<p><strong>検出された部分:</strong></p><img src="${imagePath}" alt="検出された部分">`;
+            }
+
+            resultDiv.innerHTML = resultHtml;
+        }
+
+        function goBack() {
+            window.location.href = '/';
+        }
+
+        window.onload = function() {
+            const data = getResultData();
+            displayResult(data);
+        };
+    </script>
+</body>
+</html>
