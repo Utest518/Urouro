@@ -4,7 +4,6 @@ aiosignal==1.3.1
 annotated-types==0.6.0
 anyio==3.7.1
 appnope==0.1.3
-archspec @ file:///croot/archspec_1697725767277/work
 arxiv==1.4.8
 asgiref==3.7.2
 astroid==2.15.6
