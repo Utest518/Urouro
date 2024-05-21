@@ -4,14 +4,28 @@ import numpy as np
 from PIL import Image
 import io
 import os
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing.image import img_to_array
+import tensorflow as tf
 from foam_detection import detect_foam
+
+# GPUメモリの使用量を制限
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    try:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+        logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+    except RuntimeError as e:
+        print(e)
 
 app = Flask(__name__)
 
-# 学習済みモデルを読み込む
-model = load_model('urine_color_model.h5')
+# モデルの遅延読み込み
+model = None
+def load_model():
+    global model
+    if model is None:
+        model = tf.keras.models.load_model('urine_color_model.h5')
 
 # カテゴリ（ラベル）のリスト
 categories = ["yellow", "coffee_milky", "light_pink", "red", "transparent_yellow", "white_milky", "brown"]
@@ -20,7 +34,7 @@ def preprocess_image(image):
     # 画像を128x128にリサイズ
     image = cv2.resize(image, (128, 128))
     # 画像をnumpy配列に変換し、正規化
-    image = img_to_array(image) / 255.0
+    image = image.astype('float32') / 255.0
     # バッチサイズの次元を追加
     image = np.expand_dims(image, axis=0)
     return image
@@ -36,6 +50,9 @@ def upload_image():
         # 画像を読み込み
         image = Image.open(io.BytesIO(file.read()))
         image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+        
+        # モデルを遅延読み込み
+        load_model()
         
         # 色の検出
         processed_image = preprocess_image(image)

@@ -50,3 +50,4 @@ print(f"Test accuracy: {accuracy}")
 
 # ステップ 6: モデルの保存
 model.save('urine_color_model.h5')
+
