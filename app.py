@@ -33,11 +33,23 @@ categories = ["yellow", "coffee_milky", "light_pink", "red", "transparent_yellow
 def preprocess_image(image):
     # 画像を128x128にリサイズ
     image = cv2.resize(image, (128, 128))
+    
+    # 画像の明るさとコントラストを調整
+    alpha = 1.2  # コントラスト制御 (1.0-3.0)
+    beta = 20    # 明るさ制御 (0-100)
+    image = cv2.convertScaleAbs(image, alpha=alpha, beta=beta)
+    
     # 画像をnumpy配列に変換し、正規化
     image = image.astype('float32') / 255.0
     # バッチサイズの次元を追加
     image = np.expand_dims(image, axis=0)
     return image
+
+def extract_center_region(image):
+    # 画像の中央部分を切り取る
+    h, w = image.shape[:2]
+    center = image[h//4:3*h//4, w//4:3*w//4]
+    return center
 
 @app.route('/')
 def index():
@@ -51,16 +63,19 @@ def upload_image():
         image = Image.open(io.BytesIO(file.read()))
         image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
         
+        # 中央部分の領域を抽出
+        urine_region = extract_center_region(image)
+        
         # モデルを遅延読み込み
         load_model()
         
         # 色の検出
-        processed_image = preprocess_image(image)
+        processed_image = preprocess_image(urine_region)
         prediction = model.predict(processed_image)
         detected_color = categories[np.argmax(prediction)]
         
         # 泡の検出
-        foam_detected, result_image = detect_foam(image)
+        foam_detected, result_image = detect_foam(urine_region)
         
         # 結果画像の保存
         output_path = os.path.join('static', 'detected_foam_contours.png')
