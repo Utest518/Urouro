@@ -3,17 +3,15 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-# ステップ 1: データの読み込み
+# データの読み込み
 X_train = np.load('X_train.npy')
 X_test = np.load('X_test.npy')
 y_train = np.load('y_train.npy')
 y_test = np.load('y_test.npy')
 
-print(f"Training data shape: {X_train.shape}")
-print(f"Testing data shape: {X_test.shape}")
-
-# ステップ 2: データの前処理
 # ピクセル値を0-1の範囲に正規化
 X_train = X_train / 255.0
 X_test = X_test / 255.0
@@ -23,7 +21,18 @@ num_classes = len(np.unique(y_train))
 y_train = to_categorical(y_train, num_classes)
 y_test = to_categorical(y_test, num_classes)
 
-# ステップ 3: モデルの構築
+# データ増強の設定
+datagen = ImageDataGenerator(
+    rotation_range=20,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+    shear_range=0.2,
+    zoom_range=0.2,
+    horizontal_flip=True,
+    fill_mode='nearest'
+)
+
+# モデルの構築
 model = Sequential([
     Conv2D(32, (3, 3), activation='relu', input_shape=(128, 128, 3)),
     MaxPooling2D((2, 2)),
@@ -39,15 +48,22 @@ model = Sequential([
 
 model.summary()
 
-# ステップ 4: モデルのトレーニング
-model.compile(optimizer=Adam(), loss='categorical_crossentropy', metrics=['accuracy'])
+# 早期停止と学習率減少の設定
+early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, min_lr=0.00001)
 
-history = model.fit(X_train, y_train, epochs=20, batch_size=32, validation_data=(X_test, y_test))
+# モデルのコンパイル
+model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
 
-# ステップ 5: モデルの評価
+# モデルのトレーニング
+history = model.fit(datagen.flow(X_train, y_train, batch_size=32), 
+                    epochs=50, 
+                    validation_data=(X_test, y_test), 
+                    callbacks=[early_stopping, reduce_lr])
+
+# モデルの評価
 loss, accuracy = model.evaluate(X_test, y_test)
 print(f"Test accuracy: {accuracy}")
 
-# ステップ 6: モデルの保存
+# モデルの保存
 model.save('urine_color_model.h5')
-
