@@ -30,8 +30,7 @@ h1 {
     margin-bottom: 20px;
     position: relative;
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    justify-content: center;
 }
 
 input[type="file"] {

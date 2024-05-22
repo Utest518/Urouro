@@ -9,18 +9,45 @@
 <body>
     <div class="container">
         <h1>尿検査アプリ</h1>
-        <button id="cameraButton" class="custom-upload-button">撮影する</button>
+        <form id="uploadForm">
+            <div class="form-group">
+                <input type="file" id="imageInput" accept="image/*" required>
+                <label for="imageInput" class="custom-file-label">ファイルを選択</label>
+            </div>
+            <button type="submit" class="custom-upload-button">アップロード</button>
+        </form>
+        <div id="result"></div>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const cameraButton = document.getElementById('cameraButton');
-            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            const fileInput = document.getElementById('imageInput');
+            const fileLabel = document.querySelector('.custom-file-label');
+            const uploadForm = document.getElementById('uploadForm');
 
-            cameraButton.addEventListener('click', function() {
-                if (isMobile) {
-                    window.location.href = '/camera';
+            fileInput.addEventListener('change', function() {
+                if (fileInput.files.length > 0) {
+                    const fileName = fileInput.files[0].name;
+                    fileLabel.textContent = fileName;
+                }
+            });
+
+            uploadForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                if (fileInput.files.length === 0) {
+                    alert("ファイルが選択されていません。");
+                    return;
+                }
+                const formData = new FormData();
+                formData.append('image', fileInput.files[0]);
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.error) {
+                    alert(result.error);
                 } else {
-                    alert("この機能はモバイルデバイスでのみ使用できます。");
+                    window.location.href = '/result?data=' + encodeURIComponent(JSON.stringify(result));
                 }
             });
         });
