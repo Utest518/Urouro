@@ -5,96 +5,70 @@
     <title>尿検査アプリ</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
-    <style>
-        .camera-container {
-            position: relative;
-            width: 100%;
-            max-width: 400px;
-            margin: auto;
-        }
-        #video {
-            width: 100%;
-        }
-        .marker {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 100px;
-            height: 100px;
-            margin-top: -50px;
-            margin-left: -50px;
-            border: 2px solid red;
-            border-radius: 50%;
-            box-sizing: border-box;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
         <h1>尿検査アプリ</h1>
-        <div class="camera-container">
-            <video id="video" autoplay></video>
-            <div class="marker"></div>
-        </div>
-        <button id="captureButton" class="custom-upload-button">撮影</button>
-        <form id="uploadForm">
-            <input type="file" id="imageInput" accept="image/*" capture="environment" style="display:none;">
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <button type="button" id="cameraButton" class="custom-upload-button">撮影する</button>
+                <input type="file" id="imageInput" accept="image/*" capture="environment" style="display:none;" required>
+                <label for="imageInput" class="custom-file-label">ファイルを選択</label>
+            </div>
+            <div class="form-group">
+                <img id="preview" src="" alt="Preview" style="display:none; width: 100%; height: auto;">
+            </div>
             <button type="submit" class="custom-upload-button">アップロード</button>
         </form>
         <div id="result"></div>
     </div>
     <script>
-        const video = document.getElementById('video');
-        const captureButton = document.getElementById('captureButton');
-        const imageInput = document.getElementById('imageInput');
-        const uploadForm = document.getElementById('uploadForm');
+        document.addEventListener('DOMContentLoaded', function() {
+            const cameraButton = document.getElementById('cameraButton');
+            const imageInput = document.getElementById('imageInput');
+            const fileLabel = document.querySelector('.custom-file-label');
+            const uploadForm = document.getElementById('uploadForm');
+            const preview = document.getElementById('preview');
 
-        // カメラにアクセス
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-            .then(stream => {
-                video.srcObject = stream;
-            })
-            .catch(err => {
-                console.error('Error accessing the camera', err);
+            cameraButton.addEventListener('click', function() {
+                imageInput.click();
             });
 
-        // 撮影ボタンが押されたときの処理
-        captureButton.addEventListener('click', () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            canvas.toBlob(blob => {
-                const file = new File([blob], 'capture.png', { type: 'image/png' });
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                imageInput.files = dataTransfer.files;
+            imageInput.addEventListener('change', function() {
+                if (imageInput.files.length > 0) {
+                    const file = imageInput.files[0];
+                    const fileName = file.name;
+                    fileLabel.textContent = fileName;
 
-                // 撮影後にアップロードボタンを自動的にクリックする
-                document.getElementById('uploadForm').submit();
-            }, 'image/png');
-        });
-
-        // アップロードフォームの処理
-        uploadForm.addEventListener('submit', async function(event) {
-            event.preventDefault();
-            if (imageInput.files.length === 0) {
-                alert("ファイルが選択されていません。");
-                return;
-            }
-            const formData = new FormData();
-            formData.append('image', imageInput.files[0]);
-            const response = await fetch('/upload', {
-                method: 'POST',
-                body: formData
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
             });
-            const result = await response.json();
-            if (result.error) {
-                alert(result.error);
-            } else {
-                window.location.href = '/result?data=' + encodeURIComponent(JSON.stringify(result));
-            }
+
+            uploadForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                if (imageInput.files.length === 0) {
+                    alert("ファイルが選択されていません。");
+                    return;
+                }
+                const formData = new FormData();
+                formData.append('image', imageInput.files[0]);
+
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.error) {
+                    alert(result.error);
+                } else {
+                    window.location.href = '/result?data=' + encodeURIComponent(JSON.stringify(result));
+                }
+            });
         });
     </script>
 </body>
