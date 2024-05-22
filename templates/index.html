@@ -9,47 +9,51 @@
 <body>
     <div class="container">
         <h1>尿検査アプリ</h1>
-        <form id="uploadForm">
-            <div class="form-group">
-                <input type="file" id="imageInput" accept="image/*" required>
-                <label for="imageInput" class="custom-file-label">ファイルを選択</label>
-            </div>
-            <button type="submit" class="custom-upload-button">アップロード</button>
-        </form>
+        <div>
+            <video id="video" width="100%" height="100%" autoplay></video>
+            <button id="snap">撮影</button>
+            <canvas id="canvas" style="display:none;"></canvas>
+        </div>
+        <div>
+            <button id="upload">アップロード</button>
+        </div>
         <div id="result"></div>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const fileInput = document.getElementById('imageInput');
-            const fileLabel = document.querySelector('.custom-file-label');
-            const uploadForm = document.getElementById('uploadForm');
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const snap = document.getElementById('snap');
+        const upload = document.getElementById('upload');
+        const context = canvas.getContext('2d');
 
-            fileInput.addEventListener('change', function() {
-                if (fileInput.files.length > 0) {
-                    const fileName = fileInput.files[0].name;
-                    fileLabel.textContent = fileName;
-                }
+        // カメラのストリームを取得
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
             });
 
-            uploadForm.addEventListener('submit', async function(event) {
-                event.preventDefault();
-                if (fileInput.files.length === 0) {
-                    alert("ファイルが選択されていません。");
-                    return;
-                }
-                const formData = new FormData();
-                formData.append('image', fileInput.files[0]);
-                const response = await fetch('/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                const result = await response.json();
-                if (result.error) {
-                    alert(result.error);
-                } else {
-                    window.location.href = '/result?data=' + encodeURIComponent(JSON.stringify(result));
-                }
+        // 撮影ボタンをクリックしたときの処理
+        snap.addEventListener('click', () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.style.display = 'block';
+        });
+
+        // アップロードボタンをクリックしたときの処理
+        upload.addEventListener('click', async () => {
+            const dataURL = canvas.toDataURL('image/png');
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: JSON.stringify({ image: dataURL }),
+                headers: { 'Content-Type': 'application/json' }
             });
+            const result = await response.json();
+            if (result.error) {
+                alert(result.error);
+            } else {
+                window.location.href = '/result?data=' + encodeURIComponent(JSON.stringify(result));
+            }
         });
     </script>
 </body>
