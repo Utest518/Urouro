@@ -1,9 +1,10 @@
-from flask import Flask, request, jsonify, render_template, url_for
+from flask import Flask, request, jsonify, render_template, url_for, redirect
 import cv2
 import numpy as np
 from PIL import Image
 import io
 import os
+import base64
 import tensorflow as tf
 from foam_detection import detect_foam
 
@@ -43,45 +44,46 @@ def preprocess_image(image):
 def index():
     return render_template('index.html')
 
+@app.route('/camera')
+def camera():
+    return render_template('camera.html')
+
+@app.route('/confirm')
+def confirm():
+    image_src = request.args.get('image')
+    return render_template('confirm.html', image_src=image_src)
+
 @app.route('/upload', methods=['POST'])
 def upload_image():
-    file = request.files.get('image')
-    if not file:
-        return jsonify({'error': 'ファイルが選択されていません。'})
+    image_data = request.form['image']
+    image_data = image_data.split(",")[1]
+    image = Image.open(io.BytesIO(base64.b64decode(image_data)))
+    image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
     
-    try:
-        print("File received:", file.filename)
-        # 画像を読み込み
-        image = Image.open(io.BytesIO(file.read()))
-        image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-        
-        # モデルを遅延読み込み
-        load_model()
-        
-        # 色の検出
-        processed_image = preprocess_image(image)
-        prediction = model.predict(processed_image)
-        detected_color = categories[np.argmax(prediction)]
-        
-        # 泡の検出
-        foam_detected, result_image = detect_foam(image)
-        
-        # 結果画像の保存
-        output_path = os.path.join('static', 'detected_foam_contours.png')
-        if not os.path.exists('static'):
-            os.makedirs('static')
-        cv2.imwrite(output_path, result_image)
-        
-        result = {
-            'detected_color': detected_color,
-            'foam_detected': foam_detected,
-            'image_path': url_for('static', filename='detected_foam_contours.png')
-        }
-        
-        return jsonify(result)
-    except Exception as e:
-        print("Error processing file:", e)
-        return jsonify({'error': 'ファイル処理中にエラーが発生しました。'})
+    # モデルを遅延読み込み
+    load_model()
+    
+    # 色の検出
+    processed_image = preprocess_image(image)
+    prediction = model.predict(processed_image)
+    detected_color = categories[np.argmax(prediction)]
+    
+    # 泡の検出
+    foam_detected, result_image = detect_foam(image)
+    
+    # 結果画像の保存
+    output_path = os.path.join('static', 'detected_foam_contours.png')
+    if not os.path.exists('static'):
+        os.makedirs('static')
+    cv2.imwrite(output_path, result_image)
+    
+    result = {
+        'detected_color': detected_color,
+        'foam_detected': foam_detected,
+        'image_path': url_for('static', filename='detected_foam_contours.png')
+    }
+    
+    return jsonify(result)
 
 @app.route('/result')
 def result():
