@@ -70,6 +70,9 @@
                 const dataTransfer = new DataTransfer();
                 dataTransfer.items.add(file);
                 imageInput.files = dataTransfer.files;
+
+                // 撮影後にアップロードボタンを自動的にクリックする
+                document.getElementById('uploadForm').submit();
             }, 'image/png');
         });
 
