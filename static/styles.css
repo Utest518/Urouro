@@ -1,3 +1,4 @@
+/* 共通スタイル */
 body {
     background-color: #f7f7f7;
     font-family: 'Arial', sans-serif;
@@ -17,6 +18,7 @@ body {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 90%;
     max-width: 400px;
+    margin: 20px auto;
 }
 
 h1 {
@@ -26,6 +28,21 @@ h1 {
     color: #ffa500;  /* トパーズ色に変更 */
 }
 
+/* ホーム画面のスタイル */
+#latest-result {
+    background: #e3f2fd;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 15px;
+}
+
+#health-tips {
+    background: #ffecb3;
+    padding: 20px;
+    border-radius: 15px;
+}
+
+/* 検査画面のスタイル */
 .form-group {
     margin-bottom: 20px;
     position: relative;
@@ -85,4 +102,74 @@ input[type="file"] {
     height: auto;
     margin-top: 10px;
     border-radius: 8px;
+}
+
+/* 記録画面のスタイル */
+.result-item {
+    background: #ffffff;
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 設定画面のスタイル */
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.custom-upload-button {
+    display: inline-block;
+    width: 100%;
+    padding: 15px;
+    border-radius: 12px;
+    background-color: #ffa500;  /* トパーズ色に変更 */
+    border: none;
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-decoration: none;
+    margin-top: 10px;
+}
+
+.custom-upload-button:hover {
+    background-color: #cc8400;  /* トパーズ色に変更 */
+}
+
+/* ログイン、登録画面のスタイル */
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
 }

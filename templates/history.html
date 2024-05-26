@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>検査記録</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>過去の検査結果</h1>
+        <div id="result-list">
+            {% for result in results %}
+            <div class="result-item">
+                <p>日付: {{ result.date }}</p>
+                <p>尿の色: {{ result.color }}</p>
+                <p>泡立ち: {{ result.foam }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

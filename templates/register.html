@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Register</h1>
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.username.label }}<br>
+                {{ form.username(size=32) }}
+            </div>
+            <div class="form-group">
+                {{ form.password.label }}<br>
+                {{ form.password(size=32) }}
+            </div>
+            <div class="form-group">
+                {{ form.birthdate.label }}<br>
+                {{ form.birthdate(size=32) }}
+            </div>
+            <div class="form-group">
+                {{ form.height.label }}<br>
+                {{ form.height(size=32) }}
+            </div>
+            <div class="form-group">
+                {{ form.weight.label }}<br>
+                {{ form.weight(size=32) }}
+            </div>
+            <button type="submit" class="custom-upload-button">Register</button>
+        </form>
+    </div>
+</body>
+</html>

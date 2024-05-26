@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>今日の検査結果</h1>
+        <div id="latest-result">
+            <p>尿の色: {{ latest_color }}</p>
+            <p>泡立ち: {{ latest_foam }}</p>
+        </div>
+        <div id="health-tips">
+            <h2>健康アドバイス</h2>
+            <p>適切な水分摂取を心がけましょう。</p>
+        </div>
+        <a href="/index">検査を始める</a>
+        <a href="/history">検査記録を見る</a>
+    </div>
+</body>
+</html>
