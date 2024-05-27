@@ -13,7 +13,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField
 from wtforms.validators import InputRequired, Length, ValidationError
 from flask_bcrypt import Bcrypt
-from datetime import datetime
+from datetime import datetime, date
 
 # GPUメモリの使用量を制限
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -141,9 +141,28 @@ def logout():
 @app.route('/')
 @login_required
 def home():
-    latest_color = "黄"
-    latest_foam = "なし"
-    return render_template('home.html', latest_color=latest_color, latest_foam=latest_foam)
+    today = date.today()
+    latest_result = Result.query.filter_by(user_id=current_user.id).filter(Result.date >= today).order_by(Result.date.desc()).first()
+    
+    health_advice = ""
+    if latest_result:
+        color = latest_result.color
+        if color == "yellow":
+            health_advice = "健康な尿です。水分をしっかり摂りましょう。"
+        elif color == "transparent_yellow":
+            health_advice = "水分を多く摂りすぎているかもしれません。"
+        elif color == "red":
+            health_advice = "血尿が見られます。すぐに医師の診察を受けてください。"
+        elif color == "brown":
+            health_advice = "ビリルビン尿の可能性があります。肝臓の検査を受けてください。"
+        elif color == "coffee_milky":
+            health_advice = "尿路感染の可能性があります。医師の診察を受けてください。"
+        elif color == "light_pink":
+            health_advice = "尿酸が増えている可能性があります。医師の診察を受けてください。"
+        elif color == "white_milky":
+            health_advice = "尿が白くにごるのは感染症の可能性があります。医師の診察を受けてください。"
+    
+    return render_template('home.html', latest_result=latest_result, health_advice=health_advice)
 
 @app.route('/index')
 @login_required

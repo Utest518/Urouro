@@ -1,24 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <title>ホーム - 尿検査アプリ</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <h1>今日の検査結果</h1>
+        <h1>ホーム</h1>
         <div id="latest-result">
-            <p>尿の色: {{ latest_color }}</p>
-            <p>泡立ち: {{ latest_foam }}</p>
+            {% if latest_result %}
+                <h2>今日の検査結果</h2>
+                <p>検出された色: {{ latest_result.color }}</p>
+                <p>泡立ち: {{ latest_result.foam }}</p>
+                <p>検査日: {{ latest_result.date }}</p>
+                <h3>健康アドバイス</h3>
+                <p>{{ health_advice }}</p>
+            {% else %}
+                <p>今日の検査結果はまだありません。</p>
+            {% endif %}
         </div>
-        <div id="health-tips">
-            <h2>健康アドバイス</h2>
-            <p>適切な水分摂取を心がけましょう。</p>
-        </div>
-        <a href="/index">検査を始める</a>
-        <a href="/history">検査記録を見る</a>
+        <button class="custom-upload-button" onclick="location.href='/index'">検査を始める</button>
     </div>
 </body>
 </html>
