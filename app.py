@@ -167,11 +167,18 @@ def upload_image():
         if not os.path.exists('static'):
             os.makedirs('static')
         cv2.imwrite(output_path, result_image)
+        
+        # 結果をデータベースに保存
+        new_result = Result(color=detected_color, foam='あり' if foam_detected else 'なし', user_id=current_user.id)
+        db.session.add(new_result)
+        db.session.commit()
+
         result = {
             'detected_color': detected_color,
             'foam_detected': foam_detected,
             'image_path': url_for('static', filename='detected_foam_contours.png')
         }
+        
         return jsonify(result)
     return jsonify({'error': 'No file uploaded'})
 
@@ -183,7 +190,7 @@ def result():
 @app.route('/history')
 @login_required
 def history():
-    results = Result.query.order_by(Result.date.desc()).all()
+    results = Result.query.filter_by(user_id=current_user.id).order_by(Result.date.desc()).all()
     return render_template('history.html', results=results)
 
 @app.route('/settings', methods=['GET', 'POST'])
