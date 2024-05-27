@@ -225,5 +225,56 @@ def settings():
         return redirect(url_for('settings'))
     return render_template('settings.html', user=current_user)
 
+# 検査結果の取得API
+@app.route('/api/results', methods=['GET'])
+@login_required
+def api_get_results():
+    results = Result.query.filter_by(user_id=current_user.id).order_by(Result.date.desc()).all()
+    results_list = [{
+        'id': result.id,
+        'color': result.color,
+        'foam': result.foam,
+        'date': result.date
+    } for result in results]
+    return jsonify(results_list)
+
+# 検査結果の作成API
+@app.route('/api/results', methods=['POST'])
+@login_required
+def api_create_result():
+    data = request.get_json()
+    new_result = Result(
+        color=data['color'],
+        foam=data['foam'],
+        user_id=current_user.id
+    )
+    db.session.add(new_result)
+    db.session.commit()
+    return jsonify({'message': 'Result created successfully'}), 201
+
+# 検査結果の更新API
+@app.route('/api/results/<int:id>', methods=['PUT'])
+@login_required
+def api_update_result(id):
+    result = Result.query.get_or_404(id)
+    if result.user_id != current_user.id:
+        return jsonify({'error': 'Unauthorized access'}), 403
+    data = request.get_json()
+    result.color = data.get('color', result.color)
+    result.foam = data.get('foam', result.foam)
+    db.session.commit()
+    return jsonify({'message': 'Result updated successfully'})
+
+# 検査結果の削除API
+@app.route('/api/results/<int:id>', methods=['DELETE'])
+@login_required
+def api_delete_result(id):
+    result = Result.query.get_or_404(id)
+    if result.user_id != current_user.id:
+        return jsonify({'error': 'Unauthorized access'}), 403
+    db.session.delete(result)
+    db.session.commit()
+    return jsonify({'message': 'Result deleted successfully'})
+
 if __name__ == '__main__':
     app.run(debug=True)
