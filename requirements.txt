@@ -3,3 +3,9 @@ opencv-python>=4.0.0
 Pillow>=8.0.0
 tensorflow>=2.4.0
 gunicorn>=20.0.0
+flask_sqlalchemy
+flask_migrate
+flask_login
+flask_wtf
+flask_bcrypt
+wtforms
