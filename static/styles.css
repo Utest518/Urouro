@@ -1,63 +1,76 @@
-/* 共通スタイル */
+/* ベーススタイル */
 body {
     background-color: #f7f7f7;
-    font-family: 'Arial', sans-serif;
+    font-family: 'Helvetica', 'Arial', sans-serif;
     color: #333;
+    margin: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    margin: 0;
+    box-sizing: border-box;
 }
 
+/* コンテナ */
 .container {
-    text-align: center;
-    background-color: #fff;
-    padding: 40px;
+    background-color: #ffffff;
+    padding: 20px;
     border-radius: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     width: 90%;
     max-width: 400px;
-    margin: 20px auto;
+    text-align: center;
+    box-sizing: border-box;
 }
 
+/* ヘッダー */
 h1 {
-    margin-bottom: 30px;
     font-size: 28px;
-    font-weight: 700;
-    color: #ffa500;  /* トパーズ色に変更 */
-}
-
-/* ホーム画面のスタイル */
-#latest-result {
-    background: #e3f2fd;
-    padding: 20px;
+    color: #ffa500;
     margin-bottom: 20px;
-    border-radius: 15px;
 }
 
-#health-tips {
-    background: #ffecb3;
-    padding: 20px;
-    border-radius: 15px;
+/* サブヘッダー */
+h2, h3 {
+    color: #333;
+    font-size: 20px;
+    margin-bottom: 15px;
 }
 
-/* 検査画面のスタイル */
+/* ボタン */
+button.custom-upload-button, .custom-file-label {
+    width: 100%;
+    padding: 15px;
+    border-radius: 12px;
+    background-color: #ffa500;
+    color: #fff;
+    border: none;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    margin-top: 10px;
+    transition: background-color 0.3s ease;
+}
+
+button.custom-upload-button:hover, .custom-file-label:hover {
+    background-color: #cc8400;
+}
+
+/* フォーム */
 .form-group {
     margin-bottom: 20px;
     position: relative;
-    display: flex;
-    justify-content: center;
 }
 
-input[type="file"] {
-    display: none;
-}
-
+/* ファイルラベル */
 .custom-file-label {
-    display: inline-block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
-    padding: 15px;
+    height: 50px;
     border: 2px dashed #ddd;
     border-radius: 12px;
     background-color: #fff;
@@ -65,33 +78,14 @@ input[type="file"] {
     text-align: center;
     color: #999;
     transition: background-color 0.3s ease, border-color 0.3s ease;
+    box-sizing: border-box;
 }
 
-.custom-file-label:hover {
-    background-color: #f0f0f0;
-    border-color: #ccc;
+input[type="file"] {
+    display: none;
 }
 
-.custom-upload-button {
-    display: inline-block;
-    width: 100%;
-    padding: 15px;
-    border-radius: 12px;
-    background-color: #ffa500;  /* トパーズ色に変更 */
-    border: none;
-    font-size: 18px;
-    font-weight: 600;
-    color: #fff;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    text-decoration: none;
-    margin-top: 10px;
-}
-
-.custom-upload-button:hover {
-    background-color: #cc8400;  /* トパーズ色に変更 */
-}
-
+/* 結果表示 */
 #result {
     margin-top: 20px;
     text-align: center;
@@ -104,72 +98,64 @@ input[type="file"] {
     border-radius: 8px;
 }
 
-/* 記録画面のスタイル */
-.result-item {
-    background: #ffffff;
+/* 記録カード */
+.result-card {
+    background-color: #fafafa;
+    border: 1px solid #ddd;
+    border-radius: 12px;
     padding: 15px;
     margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 15px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* 設定画面のスタイル */
-.form-group {
+.result-card p {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+/* 設定画面 */
+.settings-group {
     margin-bottom: 20px;
-    text-align: left;
 }
 
-.form-group label {
+.settings-group label {
     display: block;
+    font-weight: bold;
     margin-bottom: 5px;
-    font-weight: 600;
 }
 
-.form-group input {
+.settings-group input {
     width: 100%;
     padding: 10px;
     border: 1px solid #ddd;
-    border-radius: 5px;
-    box-sizing: border-box;
-}
-
-.custom-upload-button {
-    display: inline-block;
-    width: 100%;
-    padding: 15px;
     border-radius: 12px;
-    background-color: #ffa500;  /* トパーズ色に変更 */
-    border: none;
-    font-size: 18px;
-    font-weight: 600;
-    color: #fff;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    text-decoration: none;
-    margin-top: 10px;
 }
 
-.custom-upload-button:hover {
-    background-color: #cc8400;  /* トパーズ色に変更 */
-}
+/* メディアクエリでスマートフォンに最適化 */
+@media (max-width: 600px) {
+    body {
+        height: auto;
+        padding: 10px;
+    }
+    
+    .container {
+        width: 100%;
+        padding: 15px;
+        box-shadow: none;
+        border-radius: 0;
+    }
 
-/* ログイン、登録画面のスタイル */
-.form-group {
-    margin-bottom: 20px;
-    text-align: left;
-}
+    h1 {
+        font-size: 24px;
+    }
 
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
-}
+    button.custom-upload-button, .custom-file-label {
+        font-size: 16px;
+        padding: 12px;
+    }
 
-.form-group input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    box-sizing: border-box;
+    .result-card p {
+        font-size: 14px;
+    }
 }
