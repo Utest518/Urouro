@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 dataset_path = "dataset"
 
 # カテゴリ（ラベル）のリスト
-categories = ["yellow", "coffee_milky", "light_pink", "red", "transparent_yellow", "white_milky", "brown"]
+categories = ["yellow", "transparent_yellow", "other"]
 
 # 画像サイズ
 img_size = 128

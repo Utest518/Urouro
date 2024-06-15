@@ -37,7 +37,7 @@ def load_model():
         model = tf.keras.models.load_model('urine_color_model.h5')
 
 # カテゴリ（ラベル）のリスト
-categories = ["yellow", "coffee_milky", "light_pink", "red", "transparent_yellow", "white_milky", "brown"]
+categories = ["yellow", "transparent_yellow", "other"]
 
 def preprocess_image(image):
     # 画像を128x128にリサイズ
@@ -203,13 +203,8 @@ def upload_image():
                 os.makedirs('static')
             cv2.imwrite(output_path, result_image)
             
-            # 現在の時間を取得し、JSTに変換
-            utc_time = datetime.utcnow()
-            jst = pytz.timezone('Asia/Tokyo')
-            jst_time = utc_time.replace(tzinfo=pytz.utc).astimezone(jst)
-
             # 結果をデータベースに保存
-            new_result = Result(color=detected_color_japanese, foam='あり' if foam_detected else 'なし', user_id=current_user.id, date=jst_time)
+            new_result = Result(color=detected_color_japanese, foam='あり' if foam_detected else 'なし', user_id=current_user.id)
             db.session.add(new_result)
             db.session.commit()
             flash('Result saved successfully.')
