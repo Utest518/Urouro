@@ -160,21 +160,14 @@ def home():
     
     health_advice = ""
     if latest_result:
+        print(f"Latest result: {latest_result.color}, {latest_result.foam}, {latest_result.date}")  # デバッグ用ログ
         color = latest_result.color
-        if color == "yellow":
+        if color == "黄色":
             health_advice = "健康な尿です。水分をしっかり摂りましょう。"
-        elif color == "transparent_yellow":
+        elif color == "無色透明":
             health_advice = "水分を多く摂りすぎているかもしれません。"
-        elif color == "red":
-            health_advice = "血尿が見られます。すぐに医師の診察を受けてください。"
-        elif color == "brown":
-            health_advice = "ビリルビン尿の可能性があります。肝臓の検査を受けてください。"
-        elif color == "coffee_milky":
-            health_advice = "尿路感染の可能性があります。医師の診察を受けてください。"
-        elif color == "light_pink":
-            health_advice = "尿酸が増えている可能性があります。医師の診察を受けてください。"
-        elif color == "white_milky":
-            health_advice = "尿が白くにごるのは感染症の可能性があります。医師の診察を受けてください。"
+        elif color == "その他":
+            health_advice = "異常な色です。医師の診察を受けてください。"
     
     return render_template('home.html', latest_result=latest_result, health_advice=health_advice)
 
@@ -196,31 +189,39 @@ def upload_image():
             processed_image = preprocess_image(urine_region)
             prediction = model.predict(processed_image)
             detected_color = categories[np.argmax(prediction)]
-            detected_color_japanese = get_color_japanese(detected_color)  # 日本語に変換
+            detected_color_japanese = get_color_japanese(detected_color)
             foam_detected, result_image = detect_foam(urine_region)
             output_path = os.path.join('static', 'detected_foam_contours.png')
             if not os.path.exists('static'):
                 os.makedirs('static')
             cv2.imwrite(output_path, result_image)
             
-            # 結果をデータベースに保存
-            new_result = Result(color=detected_color_japanese, foam='あり' if foam_detected else 'なし', user_id=current_user.id)
-            db.session.add(new_result)
-            db.session.commit()
-            flash('Result saved successfully.')
-        except Exception as e:
-            print(f"Error saving result: {e}")
-            db.session.rollback()
-            flash('An error occurred while saving the result.')
+            # 日本のタイムゾーンを使用して現在時刻を取得
+            jst = pytz.timezone('Asia/Tokyo')
+            current_time = datetime.now(jst)
 
-        result = {
-            'detected_color': detected_color_japanese,  # 日本語に変換した色を返す
-            'foam_detected': foam_detected,
-            'image_path': url_for('static', filename='detected_foam_contours.png')
-        }
-        
-        return jsonify(result)
+            # 結果をデータベースに保存
+            new_result = Result(color=detected_color_japanese, foam='あり' if foam_detected else 'なし', user_id=current_user.id, date=current_time)
+            db.session.add(new_result)
+            try:
+                db.session.commit()
+                print("Result saved successfully")
+            except Exception as e:
+                print(f"Error saving result: {e}")
+                db.session.rollback()
+
+            result = {
+                'detected_color': detected_color_japanese,
+                'foam_detected': foam_detected,
+                'image_path': url_for('static', filename='detected_foam_contours.png')
+            }
+            
+            return jsonify(result)
+        except Exception as e:
+            print(f"Error processing image: {e}")
+            return jsonify({'error': 'Processing error'})
     return jsonify({'error': 'No file uploaded'})
+
 
 @app.route('/result')
 @login_required

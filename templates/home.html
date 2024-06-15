@@ -15,15 +15,11 @@
                 <div class="color-palette">
                     <div class="color-swatch" style="background-color: yellow;" title="黄色"></div>
                     <div class="color-swatch" style="background-color: transparent;" title="無色透明"></div>
-                    <div class="color-swatch" style="background-color: red;" title="赤色"></div>
-                    <div class="color-swatch" style="background-color: brown;" title="茶色"></div>
-                    <div class="color-swatch" style="background-color: #6F4E37;" title="コーヒー色"></div>
-                    <div class="color-swatch" style="background-color: pink;" title="薄ピンク色"></div>
-                    <div class="color-swatch" style="background-color: white;" title="白色"></div>
+                    <div class="color-swatch" style="background-color: gray;" title="その他"></div>
                 </div>
                 <p>検出された色: {{ latest_result.color }}</p>
                 <p>泡立ち: {{ latest_result.foam }}</p>
-                <p>検査日: {{ latest_result.date.strftime('%Y-%m-%d %H:%M') }}</p>
+                <p>検査日: {{ latest_result.date.strftime('%Y年%m月%d日 %H:%M') }}</p>
                 <h3>健康アドバイス</h3>
                 <p>{{ health_advice }}</p>
             {% else %}
