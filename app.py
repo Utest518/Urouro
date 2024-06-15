@@ -13,7 +13,8 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField
 from wtforms.validators import InputRequired, Length, ValidationError
 from flask_bcrypt import Bcrypt
-from datetime import datetime, date
+import pytz
+from datetime import datetime, timedelta, date
 
 # GPUメモリの使用量を制限
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -59,7 +60,20 @@ def extract_center_region(image):
     center = image[h//4:3*h//4, w//4:3*w//4]
     return center
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+def get_color_japanese(color):
+    color_map = {
+        "yellow": "黄色",
+        "coffee_milky": "コーヒー色",
+        "light_pink": "薄ピンク色",
+        "red": "赤色",
+        "transparent_yellow": "無色透明",
+        "white_milky": "白色",
+        "brown": "茶色"
+    }
+    return color_map.get(color, color)
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'instance', 'app.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'mysecret'
 
@@ -174,26 +188,38 @@ def index():
 def upload_image():
     file = request.files['image']
     if file:
-        image = Image.open(io.BytesIO(file.read()))
-        image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-        urine_region = extract_center_region(image)
-        load_model()
-        processed_image = preprocess_image(urine_region)
-        prediction = model.predict(processed_image)
-        detected_color = categories[np.argmax(prediction)]
-        foam_detected, result_image = detect_foam(urine_region)
-        output_path = os.path.join('static', 'detected_foam_contours.png')
-        if not os.path.exists('static'):
-            os.makedirs('static')
-        cv2.imwrite(output_path, result_image)
-        
-        # 結果をデータベースに保存
-        new_result = Result(color=detected_color, foam='あり' if foam_detected else 'なし', user_id=current_user.id)
-        db.session.add(new_result)
-        db.session.commit()
+        try:
+            image = Image.open(io.BytesIO(file.read()))
+            image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+            urine_region = extract_center_region(image)
+            load_model()
+            processed_image = preprocess_image(urine_region)
+            prediction = model.predict(processed_image)
+            detected_color = categories[np.argmax(prediction)]
+            detected_color_japanese = get_color_japanese(detected_color)  # 日本語に変換
+            foam_detected, result_image = detect_foam(urine_region)
+            output_path = os.path.join('static', 'detected_foam_contours.png')
+            if not os.path.exists('static'):
+                os.makedirs('static')
+            cv2.imwrite(output_path, result_image)
+            
+            # 現在の時間を取得し、JSTに変換
+            utc_time = datetime.utcnow()
+            jst = pytz.timezone('Asia/Tokyo')
+            jst_time = utc_time.replace(tzinfo=pytz.utc).astimezone(jst)
+
+            # 結果をデータベースに保存
+            new_result = Result(color=detected_color_japanese, foam='あり' if foam_detected else 'なし', user_id=current_user.id, date=jst_time)
+            db.session.add(new_result)
+            db.session.commit()
+            flash('Result saved successfully.')
+        except Exception as e:
+            print(f"Error saving result: {e}")
+            db.session.rollback()
+            flash('An error occurred while saving the result.')
 
         result = {
-            'detected_color': detected_color,
+            'detected_color': detected_color_japanese,  # 日本語に変換した色を返す
             'foam_detected': foam_detected,
             'image_path': url_for('static', filename='detected_foam_contours.png')
         }
