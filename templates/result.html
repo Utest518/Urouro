@@ -1,10 +1,14 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>尿検査アプリ - 結果</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
+{% extends "layout.html" %}
+
+{% block title %}尿検査アプリ - 結果{% endblock %}
+
+{% block content %}
+    <h1>検査結果</h1>
+    <div id="result"></div>
+    <button class="custom-upload-button" onclick="goBack()">戻る</button>
+{% endblock %}
+
+{% block scripts %}
     <script>
         const colorDescriptions = {
             "黄色": "健康な尿は、淡黄色からビールのような麦わら色。摂取した水分量や食事の内容、服用薬などによって、黄色の濃淡に差が出ます。朝いちばんの尿は濃い黄色に。濃い色でもにごり（混濁）や泡立ちがなく、透明な状態なら正常です。",
@@ -58,12 +62,4 @@
             displayResult(data);
         };
     </script>
-</head>
-<body>
-    <div class="container">
-        <h1>検査結果</h1>
-        <div id="result"></div>
-        <button class="custom-upload-button" onclick="goBack()">戻る</button>
-    </div>
-</body>
-</html>
+{% endblock %}

@@ -1,32 +1,25 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>ホーム - 尿検査アプリ</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
-</head>
-<body>
-    <div class="container">
-        <h1>ホーム</h1>
-        <div id="latest-result">
-            {% if latest_result %}
-                <h2>今日の検査結果</h2>
-                <div class="color-palette">
-                    <div class="color-swatch" style="background-color: yellow;" title="黄色"></div>
-                    <div class="color-swatch" style="background-color: transparent;" title="無色透明"></div>
-                    <div class="color-swatch" style="background-color: gray;" title="その他"></div>
-                </div>
-                <p>検出された色: {{ latest_result.color }}</p>
-                <p>泡立ち: {{ latest_result.foam }}</p>
-                <p>検査日: {{ latest_result.date.strftime('%Y年%m月%d日 %H:%M') }}</p>
-                <h3>健康アドバイス</h3>
-                <p>{{ health_advice }}</p>
-            {% else %}
-                <p>今日の検査結果はまだありません。</p>
-            {% endif %}
-        </div>
-        <button class="custom-upload-button" onclick="location.href='/index'">検査を始める</button>
+{% extends "layout.html" %}
+
+{% block title %}ホーム - 尿検査アプリ{% endblock %}
+
+{% block content %}
+    <h1>ホーム</h1>
+    <div id="latest-result">
+        {% if latest_result %}
+            <h2>今日の検査結果</h2>
+            <div class="color-palette">
+                <div class="color-swatch" style="background-color: yellow;" title="黄色"></div>
+                <div class="color-swatch" style="background-color: transparent;" title="無色透明"></div>
+                <div class="color-swatch" style="background-color: gray;" title="その他"></div>
+            </div>
+            <p>検出された色: {{ latest_result.color }}</p>
+            <p>泡立ち: {{ latest_result.foam }}</p>
+            <p>検査日: {{ latest_result.date.strftime('%Y年%m月%d日 %H:%M') }}</p>
+            <h3>健康アドバイス</h3>
+            <p>{{ health_advice }}</p>
+        {% else %}
+            <p>今日の検査結果はまだありません。</p>
+        {% endif %}
     </div>
-</body>
-</html>
+    <button class="custom-upload-button" onclick="location.href='/index'">検査を始める</button>
+{% endblock %}
