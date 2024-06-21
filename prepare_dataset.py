@@ -22,10 +22,17 @@ for category in categories:
     for img_name in os.listdir(folder_path):
         try:
             img_path = os.path.join(folder_path, img_name)
-            img = cv2.imread(img_path)
-            img = cv2.resize(img, (img_size, img_size))
-            data.append(img)
-            labels.append(label)
+            # 画像ファイルのみを対象にするためのチェック
+            if img_name.endswith(('.png', '.jpg', '.jpeg')):
+                img = cv2.imread(img_path)
+                if img is not None:
+                    img = cv2.resize(img, (img_size, img_size))
+                    data.append(img)
+                    labels.append(label)
+                else:
+                    print(f"Error reading image {img_path}")
+            else:
+                print(f"Skipping non-image file: {img_name}")
         except Exception as e:
             print(f"Error loading image {img_path}: {e}")
 

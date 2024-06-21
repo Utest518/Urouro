@@ -4,11 +4,12 @@ body {
     font-family: 'Helvetica', 'Arial', sans-serif;
     color: #333;
     margin: 0;
+    padding-top: 60px; /* ナビゲーションバーの高さ分の余白を追加 */
+    box-sizing: border-box;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start; /* 上部から開始するように変更 */
     height: 100vh;
-    box-sizing: border-box;
 }
 
 /* コンテナ */
@@ -23,7 +24,6 @@ body {
     box-sizing: border-box;
 }
 
-
 /* ナビゲーションバー */
 .nav-bar {
     display: flex;
@@ -33,6 +33,7 @@ body {
     position: fixed;
     bottom: 0;
     width: 100%;
+    z-index: 1000; /* 重なり順を確保 */
 }
 
 .nav-item {
@@ -163,7 +164,6 @@ input[type="file"] {
 /* メディアクエリでスマートフォンに最適化 */
 @media (max-width: 600px) {
     body {
-        height: auto;
         padding: 10px;
     }
     
@@ -186,4 +186,13 @@ input[type="file"] {
     .result-card p {
         font-size: 14px;
     }
+}
+
+/* 履歴アイテム */
+.result-item {
+    background-color: #f9f9f9;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }

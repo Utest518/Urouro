@@ -1,7 +1,7 @@
 import numpy as np
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, Input
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -34,7 +34,8 @@ datagen = ImageDataGenerator(
 
 # モデルの構築
 model = Sequential([
-    Conv2D(32, (3, 3), activation='relu', input_shape=(128, 128, 3)),
+    Input(shape=(128, 128, 3)),
+    Conv2D(32, (3, 3), activation='relu'),
     MaxPooling2D((2, 2)),
     Conv2D(64, (3, 3), activation='relu'),
     MaxPooling2D((2, 2)),
@@ -65,5 +66,5 @@ history = model.fit(datagen.flow(X_train, y_train, batch_size=32),
 loss, accuracy = model.evaluate(X_test, y_test)
 print(f"Test accuracy: {accuracy}")
 
-# モデルの保存
-model.save('urine_color_model.h5')
+# モデルの保存（Kerasのネイティブ形式）
+model.save('urine_color_model.keras')
