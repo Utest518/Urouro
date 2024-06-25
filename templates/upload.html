@@ -46,7 +46,7 @@
                     if (result.error) {
                         alert(result.error);
                     } else {
-                        window.location.href = '/result?data=' + encodeURIComponent(JSON.stringify(result));
+                        window.location.href = `/result?data=${encodeURIComponent(JSON.stringify(result))}`;
                     }
                 } catch (error) {
                     console.error('Error during fetch:', error);

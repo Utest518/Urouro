@@ -18,8 +18,10 @@
     function displayResult(data) {
         const resultDiv = document.getElementById('result');
         const status = data.status;
+        const message = data.message;
 
         let resultHtml = `<p><strong>検出結果:</strong> ${status}</p>`;
+        resultHtml += `<p>${message}</p>`;
         resultDiv.innerHTML = resultHtml;
     }
 
