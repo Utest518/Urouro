@@ -8,7 +8,7 @@ body {
     box-sizing: border-box;
     display: flex;
     justify-content: center;
-    align-items: flex-start; /* 上部から開始するように変更 */
+    align-items: center; /* 縦方向の中央揃え */
     height: 100vh;
 }
 
@@ -22,6 +22,7 @@ body {
     max-width: 400px;
     text-align: center;
     box-sizing: border-box;
+    margin: auto; /* 中央揃え */
 }
 
 /* ナビゲーションバー */
@@ -90,7 +91,23 @@ button.custom-upload-button:hover, .custom-file-label:hover {
 /* フォーム */
 .form-group {
     margin-bottom: 20px;
-    position: relative;
+    text-align: left; /* 左揃え */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.form-group label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    box-sizing: border-box;
 }
 
 /* ファイルラベル */
@@ -141,24 +158,6 @@ input[type="file"] {
     margin: 0;
     font-size: 16px;
     color: #333;
-}
-
-/* 設定画面 */
-.settings-group {
-    margin-bottom: 20px;
-}
-
-.settings-group label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.settings-group input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 12px;
 }
 
 /* メディアクエリでスマートフォンに最適化 */

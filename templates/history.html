@@ -8,8 +8,7 @@
         {% for result in results %}
         <div class="result-item">
             <p><strong>日付:</strong> {{ result.date.strftime('%Y年%m月%d日 %H:%M') }}</p>
-            <p><strong>尿の色:</strong> {{ result.color }}</p>
-            <p><strong>泡立ち:</strong> {{ result.foam }}</p>
+            <p><strong>検出結果:</strong> {{ result.status }}</p>
             <p><strong>ユーザーID:</strong> {{ result.user_id }}</p>
         </div>
         {% endfor %}
