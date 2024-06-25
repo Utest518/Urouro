@@ -5,7 +5,6 @@ from PIL import Image
 import io
 import os
 import tensorflow as tf
-from foam_detection import detect_foam
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -14,7 +13,7 @@ from wtforms import StringField, PasswordField, BooleanField
 from wtforms.validators import InputRequired, Length, ValidationError
 from flask_bcrypt import Bcrypt
 import pytz
-from datetime import datetime, timedelta, date
+from datetime import datetime
 
 # GPUメモリの使用量を制限
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -34,44 +33,9 @@ model = None
 def load_model():
     global model
     if model is None:
-        model = tf.keras.models.load_model('urine_color_model.h5')
+        model = tf.keras.models.load_model('urine_autoencoder_model.keras')
 
-# カテゴリ（ラベル）のリスト
-categories = ["yellow", "transparent_yellow", "other"]
-
-def preprocess_image(image):
-    # 画像を128x128にリサイズ
-    image = cv2.resize(image, (128, 128))
-    
-    # 画像の明るさとコントラストを調整
-    alpha = 1.2  # コントラスト制御 (1.0-3.0)
-    beta = 20    # 明るさ制御 (0-100)
-    image = cv2.convertScaleAbs(image, alpha=alpha, beta=beta)
-    
-    # 画像をnumpy配列に変換し、正規化
-    image = image.astype('float32') / 255.0
-    # バッチサイズの次元を追加
-    image = np.expand_dims(image, axis=0)
-    return image
-
-def extract_center_region(image):
-    # 画像の中央部分を切り取る
-    h, w = image.shape[:2]
-    center = image[h//4:3*h//4, w//4:3*w//4]
-    return center
-
-def get_color_japanese(color):
-    color_map = {
-        "yellow": "黄色",
-        "coffee_milky": "コーヒー色",
-        "light_pink": "薄ピンク色",
-        "red": "赤色",
-        "transparent_yellow": "無色透明",
-        "white_milky": "白色",
-        "brown": "茶色"
-    }
-    return color_map.get(color, color)
-
+# データベースの設定
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'instance', 'app.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -84,6 +48,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+# データベースモデルの定義
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -95,8 +60,7 @@ class User(UserMixin, db.Model):
 
 class Result(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    color = db.Column(db.String(20), nullable=False)
-    foam = db.Column(db.String(20), nullable=False)
+    status = db.Column(db.String(20), nullable=False)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
@@ -155,28 +119,26 @@ def logout():
 @app.route('/')
 @login_required
 def home():
-    today = date.today()
+    today = datetime.today()
     latest_result = Result.query.filter_by(user_id=current_user.id).filter(Result.date >= today).order_by(Result.date.desc()).first()
     
     health_advice = ""
     if latest_result:
-        print(f"Latest result: {latest_result.color}, {latest_result.foam}, {latest_result.date}")  # デバッグ用ログ
-        color = latest_result.color
-        if color == "黄色":
+        print(f"Latest result: {latest_result.status}, {latest_result.date}")  # デバッグ用ログ
+        status = latest_result.status
+        if status == "正常":
             health_advice = "健康な尿です。水分をしっかり摂りましょう。"
-        elif color == "無色透明":
-            health_advice = "水分を多く摂りすぎているかもしれません。"
-        elif color == "その他":
+        else:
             health_advice = "異常な色です。医師の診察を受けてください。"
     
     return render_template('home.html', latest_result=latest_result, health_advice=health_advice)
 
-@app.route('/index')
+@app.route('/upload')
 @login_required
-def index():
-    return render_template('index.html')
+def upload():
+    return render_template('upload.html')
 
-@app.route('/upload', methods=['POST'])
+@app.route('/upload_image', methods=['POST'])
 @login_required
 def upload_image():
     file = request.files['image']
@@ -184,36 +146,25 @@ def upload_image():
         try:
             image = Image.open(io.BytesIO(file.read()))
             image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-            urine_region = extract_center_region(image)
             load_model()
-            processed_image = preprocess_image(urine_region)
-            prediction = model.predict(processed_image)
-            detected_color = categories[np.argmax(prediction)]
-            detected_color_japanese = get_color_japanese(detected_color)
-            foam_detected, result_image = detect_foam(urine_region)
-            output_path = os.path.join('static', 'detected_foam_contours.png')
-            if not os.path.exists('static'):
-                os.makedirs('static')
-            cv2.imwrite(output_path, result_image)
+            processed_image = preprocess_image(image)
+            reconstructed_image = model.predict(processed_image)
+            mse = np.mean(np.power(processed_image - reconstructed_image, 2), axis=(1, 2, 3))
+            
+            threshold = 0.01  # 訓練データに基づいて設定
+            status = "異常" if mse > threshold else "正常"
             
             # 日本のタイムゾーンを使用して現在時刻を取得
             jst = pytz.timezone('Asia/Tokyo')
             current_time = datetime.now(jst)
 
             # 結果をデータベースに保存
-            new_result = Result(color=detected_color_japanese, foam='あり' if foam_detected else 'なし', user_id=current_user.id, date=current_time)
+            new_result = Result(status=status, user_id=current_user.id, date=current_time)
             db.session.add(new_result)
-            try:
-                db.session.commit()
-                print("Result saved successfully")
-            except Exception as e:
-                print(f"Error saving result: {e}")
-                db.session.rollback()
+            db.session.commit()
 
             result = {
-                'detected_color': detected_color_japanese,
-                'foam_detected': foam_detected,
-                'image_path': url_for('static', filename='detected_foam_contours.png')
+                'status': status
             }
             
             return jsonify(result)
@@ -222,6 +173,12 @@ def upload_image():
             return jsonify({'error': 'Processing error'})
     return jsonify({'error': 'No file uploaded'})
 
+def preprocess_image(image):
+    img_size = 128
+    image = cv2.resize(image, (img_size, img_size))
+    image = image / 255.0
+    image = np.expand_dims(image, axis=0)
+    return image
 
 @app.route('/result')
 @login_required
@@ -246,57 +203,6 @@ def settings():
         flash('Settings updated successfully.')
         return redirect(url_for('settings'))
     return render_template('settings.html', user=current_user)
-
-# 検査結果の取得API
-@app.route('/api/results', methods=['GET'])
-@login_required
-def api_get_results():
-    results = Result.query.filter_by(user_id=current_user.id).order_by(Result.date.desc()).all()
-    results_list = [{
-        'id': result.id,
-        'color': result.color,
-        'foam': result.foam,
-        'date': result.date
-    } for result in results]
-    return jsonify(results_list)
-
-# 検査結果の作成API
-@app.route('/api/results', methods=['POST'])
-@login_required
-def api_create_result():
-    data = request.get_json()
-    new_result = Result(
-        color=data['color'],
-        foam=data['foam'],
-        user_id=current_user.id
-    )
-    db.session.add(new_result)
-    db.session.commit()
-    return jsonify({'message': 'Result created successfully'}), 201
-
-# 検査結果の更新API
-@app.route('/api/results/<int:id>', methods=['PUT'])
-@login_required
-def api_update_result(id):
-    result = Result.query.get_or_404(id)
-    if result.user_id != current_user.id:
-        return jsonify({'error': 'Unauthorized access'}), 403
-    data = request.get_json()
-    result.color = data.get('color', result.color)
-    result.foam = data.get('foam', result.foam)
-    db.session.commit()
-    return jsonify({'message': 'Result updated successfully'})
-
-# 検査結果の削除API
-@app.route('/api/results/<int:id>', methods=['DELETE'])
-@login_required
-def api_delete_result(id):
-    result = Result.query.get_or_404(id)
-    if result.user_id != current_user.id:
-        return jsonify({'error': 'Unauthorized access'}), 403
-    db.session.delete(result)
-    db.session.commit()
-    return jsonify({'message': 'Result deleted successfully'})
 
 if __name__ == '__main__':
     app.run(debug=True)

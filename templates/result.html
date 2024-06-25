@@ -3,63 +3,33 @@
 {% block title %}尿検査アプリ - 結果{% endblock %}
 
 {% block content %}
-    <h1>検査結果</h1>
-    <div id="result"></div>
-    <button class="custom-upload-button" onclick="goBack()">戻る</button>
+<h1>検査結果</h1>
+<div id="result"></div>
+<button class="custom-upload-button" onclick="goBack()">戻る</button>
 {% endblock %}
 
 {% block scripts %}
-    <script>
-        const colorDescriptions = {
-            "黄色": "健康な尿は、淡黄色からビールのような麦わら色。摂取した水分量や食事の内容、服用薬などによって、黄色の濃淡に差が出ます。朝いちばんの尿は濃い黄色に。濃い色でもにごり（混濁）や泡立ちがなく、透明な状態なら正常です。",
-            "透明": "水分を多めにとり、腎臓の循環血量が増えると、水っぽく色の薄い「希釈尿」になります。利尿作用のあるアルコールをとった場合のほか、糖尿病や尿崩症で多尿になったときにも見られるので、続くようなら注意が必要です。",
-            "赤色": "尿に赤血球が混入した「血尿」です。通常、赤血球は尿に出てきませんが、腎臓、尿管、膀胱、前立腺などが障害されたり炎症を起こしたりすると、血尿になります。出血場所と出血量で濃淡が変わります。見てわかる真っ赤な血尿がある場合、膀胱がんや結石の有無の確認が必要です。今すぐ医療機関を受診してください。",
-            "茶色": "「ビリルビン尿」の可能性があります。ビリルビンは古い赤血球が壊れたときに出てくる黄色い成分で、通常は肝臓で処理されて便と一緒に出ていきます。しかし、肝臓や胆管に問題があると、ビリルビンが血液中に溜まり、それが尿に混ざって出てくることがあります。この結果、尿が茶色や濃い黄色になることがあります。ビリルビン尿は、肝臓や胆道系の問題を示すサインであり、例えば肝炎や胆管閉塞などの病気の兆候かもしれません。ビリルビン尿が見られた場合は、医師の診察を受けることが重要です。",
-            "コーヒー色": "白血球の量が多いほど、尿のにごりは強くなります。尿路感染による炎症の度合いも深刻になるので、抗菌薬による治療が必要です。早めに医療機関を受診してください。",
-            "薄ピンク色": "血液中の尿酸が増えると尿中に排出され、尿がにごります。よく見ると、ピンク色がかかった沈殿物がわかることもあります。結石や痛風の原因になるので、続く場合は受診しましょう。",
-            "白色": "尿が白くにごるのは、多くの場合、細菌と闘う白血球が尿に含まれ、白血球の白い色を反映する「膿尿」と呼ばれる状態です。腎臓、膀胱などが細菌に感染する尿路感染が疑われます。早めに医療機関を受診してください。"
-        };
+<script>
+    function getResultData() {
+        const params = new URLSearchParams(window.location.search);
+        return JSON.parse(params.get('data'));
+    }
 
-        const colorMapping = {
-            "yellow": "黄色",
-            "transparent_yellow": "透明",
-            "red": "赤色",
-            "brown": "茶色",
-            "coffee_milky": "コーヒー色",
-            "light_pink": "薄ピンク色",
-            "white_milky": "白色"
-        };
+    function displayResult(data) {
+        const resultDiv = document.getElementById('result');
+        const status = data.status;
 
-        function getResultData() {
-            const params = new URLSearchParams(window.location.search);
-            return JSON.parse(params.get('data'));
-        }
+        let resultHtml = `<p><strong>検出結果:</strong> ${status}</p>`;
+        resultDiv.innerHTML = resultHtml;
+    }
 
-        function displayResult(data) {
-            const resultDiv = document.getElementById('result');
-            const detectedColor = data.detected_color;
-            const foamDetected = data.foam_detected;
-            const imagePath = data.image_path;
+    function goBack() {
+        window.location.href = '{{ url_for("home") }}';
+    }
 
-            const detectedColorJP = colorMapping[detectedColor] || detectedColor;
-
-            let resultHtml = `<p><strong>検出された色:</strong> ${detectedColorJP}</p>`;
-            resultHtml += `<p>${colorDescriptions[detectedColorJP] || "色の説明が見つかりません。"}</p>`;
-            resultHtml += `<p><strong>泡立ち:</strong> ${foamDetected ? 'あり' : 'なし'}</p>`;
-            if (foamDetected) {
-                resultHtml += `<p><strong>検出された部分:</strong></p><img src="${imagePath}" alt="検出された部分">`;
-            }
-
-            resultDiv.innerHTML = resultHtml;
-        }
-
-        function goBack() {
-            window.location.href = '/';
-        }
-
-        window.onload = function() {
-            const data = getResultData();
-            displayResult(data);
-        };
-    </script>
+    window.onload = function() {
+        const data = getResultData();
+        displayResult(data);
+    };
+</script>
 {% endblock %}

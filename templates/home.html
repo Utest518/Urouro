@@ -21,5 +21,6 @@
             <p>今日の検査結果はまだありません。</p>
         {% endif %}
     </div>
-    <button class="custom-upload-button" onclick="location.href='/index'">検査を始める</button>
+    <button class="custom-upload-button" onclick="location.href='{{ url_for('upload') }}'">検査を始める</button>
 {% endblock %}
+
