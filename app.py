@@ -119,12 +119,14 @@ def logout():
 @app.route('/')
 @login_required
 def home():
-    today = datetime.today()
+    today = datetime.today().date()  # 日付だけで比較するよう修正
     latest_result = Result.query.filter_by(user_id=current_user.id).filter(Result.date >= today).order_by(Result.date.desc()).first()
+    
+    print(f"Latest result: {latest_result}")  # デバッグ用ログ
     
     health_advice = ""
     if latest_result:
-        print(f"Latest result: {latest_result.status}, {latest_result.date}")  # デバッグ用ログ
+        print(f"Latest result status: {latest_result.status}, Latest result date: {latest_result.date}")  # デバッグ用ログ
         status = latest_result.status
         if status == "正常":
             health_advice = "健康な尿です。水分をしっかり摂りましょう。"

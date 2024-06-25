@@ -7,13 +7,7 @@
     <div id="latest-result">
         {% if latest_result %}
             <h2>今日の検査結果</h2>
-            <div class="color-palette">
-                <div class="color-swatch" style="background-color: yellow;" title="黄色"></div>
-                <div class="color-swatch" style="background-color: transparent;" title="無色透明"></div>
-                <div class="color-swatch" style="background-color: gray;" title="その他"></div>
-            </div>
-            <p>検出された色: {{ latest_result.color }}</p>
-            <p>泡立ち: {{ latest_result.foam }}</p>
+            <p>検出結果: {{ latest_result.status }}</p>
             <p>検査日: {{ latest_result.date.strftime('%Y年%m月%d日 %H:%M') }}</p>
             <h3>健康アドバイス</h3>
             <p>{{ health_advice }}</p>
@@ -23,4 +17,3 @@
     </div>
     <button class="custom-upload-button" onclick="location.href='{{ url_for('upload') }}'">検査を始める</button>
 {% endblock %}
-
