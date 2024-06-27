@@ -4,7 +4,7 @@ import numpy as np
 from PIL import Image
 import io
 import os
-import tensorflow as tf
+import tensorflow.lite as tflite
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -22,7 +22,8 @@ model = None
 def load_model():
     global model
     if model is None:
-        model = tf.keras.models.load_model('urine_autoencoder_model.keras')
+        model = tflite.Interpreter(model_path='urine_autoencoder_model.tflite')
+        model.allocate_tensors()
 
 # データベースの設定
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -108,14 +109,14 @@ def logout():
 @app.route('/')
 @login_required
 def home():
-    today = datetime.today().date()
+    today = datetime.today().date()  # 日付だけで比較するよう修正
     latest_result = Result.query.filter_by(user_id=current_user.id).filter(Result.date >= today).order_by(Result.date.desc()).first()
     
-    print(f"Latest result: {latest_result}")
+    print(f"Latest result: {latest_result}")  # デバッグ用ログ
     
     health_advice = ""
     if latest_result:
-        print(f"Latest result status: {latest_result.status}, Latest result date: {latest_result.date}")
+        print(f"Latest result status: {latest_result.status}, Latest result date: {latest_result.date}")  # デバッグ用ログ
         status = latest_result.status
         if status == "正常":
             health_advice = "健康な尿です。水分をしっかり摂りましょう。"
@@ -139,12 +140,17 @@ def upload_image():
             image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
             load_model()
             processed_image = preprocess_image(image)
-            reconstructed_image = model.predict(processed_image)
+            input_details = model.get_input_details()
+            output_details = model.get_output_details()
+            model.set_tensor(input_details[0]['index'], processed_image)
+            model.invoke()
+            reconstructed_image = model.get_tensor(output_details[0]['index'])
             mse = np.mean(np.power(processed_image - reconstructed_image, 2), axis=(1, 2, 3))
             
-            threshold = 0.01
+            threshold = 0.01  # 訓練データに基づいて設定
             status = "異常" if mse > threshold else "正常"
             
+            # ステータスに基づいたメッセージの設定
             if status == "正常":
                 message = ("おめでとうございます！検査結果は正常です。<br><br>"
                            "健康な尿の色は淡黄色から濃い黄色の範囲です。尿の色が透明や淡い黄色である場合、水分をしっかり摂取している証拠です。"
@@ -159,9 +165,11 @@ def upload_image():
                            "このような結果が出た場合は、速やかに医師の診察を受けることを強くお勧めします。"
                            "また、日々の生活習慣を見直し、適切な水分摂取やバランスの取れた食事を心がけましょう。")
 
+            # 日本のタイムゾーンを使用して現在時刻を取得
             jst = pytz.timezone('Asia/Tokyo')
             current_time = datetime.now(jst)
 
+            # 結果をデータベースに保存
             new_result = Result(status=status, user_id=current_user.id, date=current_time)
             db.session.add(new_result)
             db.session.commit()
