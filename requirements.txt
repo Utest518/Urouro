@@ -1,7 +1,7 @@
 Flask>=2.0.0
-opencv-python>=4.0.0
+opencv-python-headless>=4.0.0  # opencv-pythonより軽量です
 Pillow>=8.0.0
-tensorflow-cpu>=2.4.0  # こちらを使用
+tensorflow-cpu>=2.4.0  # tensorflowより軽量です
 gunicorn>=20.0.0
 flask_sqlalchemy
 flask_migrate
