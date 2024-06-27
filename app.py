@@ -4,7 +4,7 @@ import numpy as np
 from PIL import Image
 import io
 import os
-import tensorflow.lite as tflite
+import tensorflow as tf
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -19,11 +19,17 @@ app = Flask(__name__)
 
 # モデルの遅延読み込み
 model = None
+interpreter = None
+input_details = None
+output_details = None
+
 def load_model():
-    global model
-    if model is None:
-        model = tflite.Interpreter(model_path='urine_autoencoder_model.tflite')
-        model.allocate_tensors()
+    global interpreter, input_details, output_details
+    if interpreter is None:
+        interpreter = tf.lite.Interpreter(model_path='urine_autoencoder_model.tflite')
+        interpreter.allocate_tensors()
+        input_details = interpreter.get_input_details()
+        output_details = interpreter.get_output_details()
 
 # データベースの設定
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -140,11 +146,9 @@ def upload_image():
             image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
             load_model()
             processed_image = preprocess_image(image)
-            input_details = model.get_input_details()
-            output_details = model.get_output_details()
-            model.set_tensor(input_details[0]['index'], processed_image)
-            model.invoke()
-            reconstructed_image = model.get_tensor(output_details[0]['index'])
+            interpreter.set_tensor(input_details[0]['index'], processed_image)
+            interpreter.invoke()
+            reconstructed_image = interpreter.get_tensor(output_details[0]['index'])
             mse = np.mean(np.power(processed_image - reconstructed_image, 2), axis=(1, 2, 3))
             
             threshold = 0.01  # 訓練データに基づいて設定
