@@ -15,17 +15,6 @@ from flask_bcrypt import Bcrypt
 import pytz
 from datetime import datetime
 
-# GPUメモリの使用量を制限
-gpus = tf.config.experimental.list_physical_devices('GPU')
-if gpus:
-    try:
-        for gpu in gpus:
-            tf.config.experimental.set_memory_growth(gpu, True)
-        logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
-    except RuntimeError as e:
-        print(e)
-
 app = Flask(__name__)
 
 # モデルの遅延読み込み
@@ -119,14 +108,14 @@ def logout():
 @app.route('/')
 @login_required
 def home():
-    today = datetime.today().date()  # 日付だけで比較するよう修正
+    today = datetime.today().date()
     latest_result = Result.query.filter_by(user_id=current_user.id).filter(Result.date >= today).order_by(Result.date.desc()).first()
     
-    print(f"Latest result: {latest_result}")  # デバッグ用ログ
+    print(f"Latest result: {latest_result}")
     
     health_advice = ""
     if latest_result:
-        print(f"Latest result status: {latest_result.status}, Latest result date: {latest_result.date}")  # デバッグ用ログ
+        print(f"Latest result status: {latest_result.status}, Latest result date: {latest_result.date}")
         status = latest_result.status
         if status == "正常":
             health_advice = "健康な尿です。水分をしっかり摂りましょう。"
@@ -153,10 +142,9 @@ def upload_image():
             reconstructed_image = model.predict(processed_image)
             mse = np.mean(np.power(processed_image - reconstructed_image, 2), axis=(1, 2, 3))
             
-            threshold = 0.01  # 訓練データに基づいて設定
+            threshold = 0.01
             status = "異常" if mse > threshold else "正常"
             
-            # ステータスに基づいたメッセージの設定
             if status == "正常":
                 message = ("おめでとうございます！検査結果は正常です。<br><br>"
                            "健康な尿の色は淡黄色から濃い黄色の範囲です。尿の色が透明や淡い黄色である場合、水分をしっかり摂取している証拠です。"
@@ -171,11 +159,9 @@ def upload_image():
                            "このような結果が出た場合は、速やかに医師の診察を受けることを強くお勧めします。"
                            "また、日々の生活習慣を見直し、適切な水分摂取やバランスの取れた食事を心がけましょう。")
 
-            # 日本のタイムゾーンを使用して現在時刻を取得
             jst = pytz.timezone('Asia/Tokyo')
             current_time = datetime.now(jst)
 
-            # 結果をデータベースに保存
             new_result = Result(status=status, user_id=current_user.id, date=current_time)
             db.session.add(new_result)
             db.session.commit()
