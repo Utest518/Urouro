@@ -1,0 +1,7 @@
+# .gitignore
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.db
+instance/
+.env
