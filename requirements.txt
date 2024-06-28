@@ -11,3 +11,4 @@ wtforms
 pytz
 scikit-learn
 joblib
+psycopg2
