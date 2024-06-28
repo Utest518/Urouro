@@ -16,14 +16,17 @@ from wtforms.validators import InputRequired, Length, ValidationError
 from flask_bcrypt import Bcrypt
 import pytz
 from datetime import datetime
+from urllib.parse import urlparse, urljoin
 
 app = Flask(__name__)
 
 # データベースの設定
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'instance', 'app.db')
+uri = os.getenv("DATABASE_URL")
+if uri and uri.startswith("postgres://"):
+    uri = uri.replace("postgres://", "postgresql://", 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'mysecret'
+app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -103,7 +106,7 @@ def logout():
 @app.route('/')
 @login_required
 def home():
-    today = datetime.today().date()  # 日付だけで比較するよう修正
+    today = datetime.today().date()
     latest_result = Result.query.filter_by(user_id=current_user.id).filter(Result.date >= today).order_by(Result.date.desc()).first()
     
     health_advice = ""
