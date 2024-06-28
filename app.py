@@ -1,10 +1,12 @@
-from flask import Flask, request, jsonify, render_template, url_for, redirect, flash
+import os
+from flask import Flask, request, jsonify, render_template, redirect, url_for, flash
 import cv2
 import numpy as np
 from PIL import Image
 import io
-import os
-import tensorflow as tf
+import joblib
+from sklearn.decomposition import PCA
+from sklearn.ensemble import IsolationForest
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -16,20 +18,6 @@ import pytz
 from datetime import datetime
 
 app = Flask(__name__)
-
-# モデルの遅延読み込み
-model = None
-interpreter = None
-input_details = None
-output_details = None
-
-def load_model():
-    global interpreter, input_details, output_details
-    if interpreter is None:
-        interpreter = tf.lite.Interpreter(model_path='urine_autoencoder_model.tflite')
-        interpreter.allocate_tensors()
-        input_details = interpreter.get_input_details()
-        output_details = interpreter.get_output_details()
 
 # データベースの設定
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -118,11 +106,8 @@ def home():
     today = datetime.today().date()  # 日付だけで比較するよう修正
     latest_result = Result.query.filter_by(user_id=current_user.id).filter(Result.date >= today).order_by(Result.date.desc()).first()
     
-    print(f"Latest result: {latest_result}")  # デバッグ用ログ
-    
     health_advice = ""
     if latest_result:
-        print(f"Latest result status: {latest_result.status}, Latest result date: {latest_result.date}")  # デバッグ用ログ
         status = latest_result.status
         if status == "正常":
             health_advice = "健康な尿です。水分をしっかり摂りましょう。"
@@ -144,16 +129,18 @@ def upload_image():
         try:
             image = Image.open(io.BytesIO(file.read()))
             image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-            load_model()
-            processed_image = preprocess_image(image)
-            interpreter.set_tensor(input_details[0]['index'], processed_image)
-            interpreter.invoke()
-            reconstructed_image = interpreter.get_tensor(output_details[0]['index'])
-            mse = np.mean(np.power(processed_image - reconstructed_image, 2), axis=(1, 2, 3))
-            
-            threshold = 0.01  # 訓練データに基づいて設定
-            status = "異常" if mse > threshold else "正常"
-            
+            image = cv2.resize(image, (128, 128)).flatten() / 255.0
+
+            # モデルの読み込み
+            pca = joblib.load('pca_model.pkl')
+            iso_forest = joblib.load('iso_forest_model.pkl')
+
+            # 画像データの前処理
+            image_pca = pca.transform([image])
+            prediction = iso_forest.predict(image_pca)
+
+            status = "正常" if prediction == 1 else "異常"
+
             # ステータスに基づいたメッセージの設定
             if status == "正常":
                 message = ("おめでとうございます！検査結果は正常です。<br><br>"
@@ -188,13 +175,6 @@ def upload_image():
             print(f"Error processing image: {e}")
             return jsonify({'error': 'Processing error'})
     return jsonify({'error': 'No file uploaded'})
-
-def preprocess_image(image):
-    img_size = 128
-    image = cv2.resize(image, (img_size, img_size))
-    image = image / 255.0
-    image = np.expand_dims(image, axis=0)
-    return image
 
 @app.route('/result')
 @login_required
