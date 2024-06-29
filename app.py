@@ -21,12 +21,17 @@ from urllib.parse import urlparse, urljoin
 app = Flask(__name__)
 
 # データベースの設定
-uri = os.getenv("DATABASE_URL")
+uri = os.getenv("SQLALCHEMY_DATABASE_URI")
 if uri and uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+
+# 環境変数の確認のためにプリントステートメントを追加
+print("SECRET_KEY:", app.config['SECRET_KEY'])
+print("SQLALCHEMY_DATABASE_URI:", app.config['SQLALCHEMY_DATABASE_URI'])
+
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)

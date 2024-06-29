@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>ログイン</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>Login</h1>
+        <h1>ログイン</h1>
         <form method="POST">
             {{ form.hidden_tag() }}
             <div class="form-group">
@@ -19,11 +19,14 @@
                 {{ form.password.label }}<br>
                 {{ form.password(size=32) }}
             </div>
-            <div class="form-group">
-                {{ form.remember }} Remember me
+            <div class="form-group-remember">
+                {{ form.remember }} ログイン状態を保持する
             </div>
-            <button type="submit" class="custom-upload-button">Login</button>
+            <button type="submit" class="custom-upload-button">ログイン</button>
         </form>
+        <div class="register-link">
+            <p>アカウントをお持ちでないですか？ <a href="{{ url_for('register') }}">こちらで登録</a></p>
+        </div>
     </div>
 </body>
 </html>
