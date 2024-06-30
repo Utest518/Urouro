@@ -17,16 +17,18 @@ from flask_bcrypt import Bcrypt
 import pytz
 from datetime import datetime
 from urllib.parse import urlparse, urljoin
+from dotenv import load_dotenv
 
+load_dotenv() 
 app = Flask(__name__)
 
 # データベースの設定
-uri = os.getenv("SQLALCHEMY_DATABASE_URI")
+uri = os.getenv("SQLALCHEMY_DATABASE_URI") or os.getenv("DATABASE_URL")
 if uri and uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "default_secret_key")
 
 # 環境変数の確認のためにプリントステートメントを追加
 print("SECRET_KEY:", app.config['SECRET_KEY'])
