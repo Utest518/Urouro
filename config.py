@@ -1,6 +1,13 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()  # 環境変数を読み込む
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'mysecret'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///instance/app.db'
+    uri = os.getenv("SQLALCHEMY_DATABASE_URI") or os.getenv("DATABASE_URL")
+    if uri and uri.startswith("postgres://"):
+        uri = uri.replace("postgres://", "postgresql://", 1)
+    
+    SECRET_KEY = os.getenv("SECRET_KEY", "default_secret_key")
+    SQLALCHEMY_DATABASE_URI = uri
     SQLALCHEMY_TRACK_MODIFICATIONS = False
