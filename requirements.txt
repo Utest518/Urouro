@@ -12,3 +12,4 @@ pytz
 scikit-learn
 joblib
 psycopg2
+python-dotenv
