@@ -176,3 +176,13 @@ def settings():
         flash('Settings updated successfully.')
         return redirect(url_for('settings'))
     return render_template('settings.html', user=current_user)
+
+@app.route('/test_write_permission')
+def test_write_permission():
+    test_file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'test.txt')
+    try:
+        with open(test_file_path, 'w') as test_file:
+            test_file.write("This is a test.")
+        return "Write test successful!"
+    except Exception as e:
+        return f"Write test failed: {e}"
