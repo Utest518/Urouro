@@ -21,10 +21,12 @@ def login():
             return redirect(url_for('home'))
         else:
             flash('ユーザー名またはパスワードが正しくありません。', 'danger')
+            return redirect(url_for('login'))
     elif request.method == 'POST':
         for field, errors in form.errors.items():
             for error in errors:
                 flash(f"{getattr(form, field).label.text}のエラー - {error}", 'danger')
+        return redirect(url_for('login'))
     return render_template('login.html', form=form)
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -44,6 +46,7 @@ def register():
         for field, errors in form.errors.items():
             for error in errors:
                 flash(f"{getattr(form, field).label.text}のエラー - {error}", 'danger')
+        return redirect(url_for('register'))
     return render_template('register.html', form=form)
 
 @app.route('/logout')

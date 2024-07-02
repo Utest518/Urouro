@@ -5,21 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>登録</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <script>
-        function validateForm() {
-            var username = document.forms["registerForm"]["username"].value;
-            var password = document.forms["registerForm"]["password"].value;
-            var birthdate = document.forms["registerForm"]["birthdate"].value;
-            var height = document.forms["registerForm"]["height"].value;
-            var weight = document.forms["registerForm"]["weight"].value;
-            
-            if (!username || !password || !birthdate || !height || !weight) {
-                alert("全てのフィールドを入力してください");
-                return false;
-            }
-            return true;
-        }
-    </script>
 </head>
 <body>
     <div class="container">
@@ -31,9 +16,19 @@
                 <div class="flash {{ category }}">{{ message }}</div>
               {% endfor %}
             </div>
+            <script>
+              // メッセージが表示された後にセッションからフラッシュメッセージを削除
+              fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ clear_flash: true })
+              });
+            </script>
           {% endif %}
         {% endwith %}
-        <form name="registerForm" method="POST" onsubmit="return validateForm()">
+        <form method="POST">
             {{ form.hidden_tag() }}
             <div class="form-group">
                 {{ form.username.label }}<br>

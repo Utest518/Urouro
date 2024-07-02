@@ -16,6 +16,16 @@
                 <div class="flash {{ category }}">{{ message }}</div>
               {% endfor %}
             </div>
+            <script>
+              // メッセージが表示された後にセッションからフラッシュメッセージを削除
+              fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ clear_flash: true })
+              });
+            </script>
           {% endif %}
         {% endwith %}
         <form method="POST">
