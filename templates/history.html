@@ -5,12 +5,16 @@
 {% block content %}
     <h1>過去の検査結果</h1>
     <div id="result-list">
-        {% for result in results %}
-        <div class="result-item">
-            <p><strong>日付:</strong> {{ result.date.strftime('%Y年%m月%d日 %H:%M') }}</p>
-            <p><strong>検出結果:</strong> {{ result.status }}</p>
-            <p><strong>ユーザーID:</strong> {{ result.user_id }}</p>
-        </div>
-        {% endfor %}
+        {% if results %}
+            {% for result in results %}
+                <div class="result-item">
+                    <p><strong>日付:</strong> {{ result.date.strftime('%Y年%m月%d日 %H:%M') }}</p>
+                    <p><strong>検出結果:</strong> {{ result.status }}</p>
+                    <p><strong>ユーザーID:</strong> {{ result.user_id }}</p>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>まだ検査されていないため、検査結果はございません。</p>
+        {% endif %}
     </div>
 {% endblock %}
