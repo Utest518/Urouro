@@ -1,15 +1,22 @@
 from flask import request, jsonify, render_template, redirect, url_for, flash
 from app import app, db, bcrypt
-from models import User, Result
+from models import User, Result, Image  # Imageモデルをインポート
 from forms import LoginForm, RegisterForm
 from flask_login import login_user, login_required, logout_user, current_user
 from datetime import datetime
 import cv2
 import numpy as np
-from PIL import Image
+from PIL import Image as PILImage
 import io
 import joblib
 import pytz
+from werkzeug.utils import secure_filename
+import os
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -58,8 +65,7 @@ def logout():
 @app.route('/')
 @login_required
 def home():
-    today = datetime.today().date()
-    latest_result = Result.query.filter_by(user_id=current_user.id).filter(Result.date >= today).order_by(Result.date.desc()).first()
+    latest_result = Result.query.filter_by(user_id=current_user.id).order_by(Result.date.desc()).first()
     
     health_advice = ""
     if latest_result:
@@ -79,10 +85,25 @@ def upload():
 @app.route('/upload_image', methods=['POST'])
 @login_required
 def upload_image():
+    if 'image' not in request.files:
+        flash('ファイルがありません。', 'danger')
+        return redirect(url_for('upload'))
+
     file = request.files['image']
-    if file:
+    if file.filename == '':
+        flash('ファイルが選択されていません。', 'danger')
+        return redirect(url_for('upload'))
+
+    if file and allowed_file(file.filename):
         try:
-            image = Image.open(io.BytesIO(file.read()))
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            new_image = Image(filename=filename, user_id=current_user.id)
+            db.session.add(new_image)
+            db.session.commit()
+
+            image = PILImage.open(file_path)
             image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
             image = cv2.resize(image, (128, 128)).flatten() / 255.0
 
@@ -134,7 +155,8 @@ def upload_image():
 @app.route('/result')
 @login_required
 def result():
-    return render_template('result.html')
+    result = Result.query.filter_by(user_id=current_user.id).order_by(Result.date.desc()).first()
+    return render_template('result.html', result=result)
 
 @app.route('/history')
 @login_required

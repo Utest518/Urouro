@@ -12,6 +12,10 @@ load_dotenv()
 app = Flask(__name__)
 app.config.from_object(Config)
 
+# 必要なディレクトリを作成
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+
 db.init_app(app)
 migrate = Migrate(app, db)
 bcrypt = Bcrypt(app)

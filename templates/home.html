@@ -6,7 +6,7 @@
     <h1>ホーム</h1>
     <div id="latest-result">
         {% if latest_result %}
-            <h2>今日の検査結果</h2>
+            <h2>最新の検査結果</h2>
             <p>検出結果: {{ latest_result.status }}</p>
             <p>検査日: {{ latest_result.date.strftime('%Y年%m月%d日 %H:%M') }}</p>
             <h3>健康アドバイス</h3>
