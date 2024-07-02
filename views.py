@@ -14,26 +14,36 @@ import pytz
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
-    if form.validate_on_submit():
+    if request.method == 'POST' and form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
             return redirect(url_for('home'))
-        flash('Invalid username or password')
+        else:
+            flash('ユーザー名またはパスワードが正しくありません。', 'danger')
+    elif request.method == 'POST':
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"{getattr(form, field).label.text}のエラー - {error}", 'danger')
     return render_template('login.html', form=form)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
-    if form.validate_on_submit():
+    if request.method == 'POST' and form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         birthdate = datetime.strptime(form.birthdate.data, '%Y%m%d').date()
         new_user = User(username=form.username.data, password=hashed_password,
                         birthdate=birthdate, height=form.height.data, weight=form.weight.data)
         db.session.add(new_user)
         db.session.commit()
-        flash('Registration successful! Please log in.')
-        return redirect(url_for('login'))
+        login_user(new_user)
+        flash('登録が完了しました。自動的にログインしました。', 'success')
+        return redirect(url_for('home'))
+    elif request.method == 'POST':
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"{getattr(form, field).label.text}のエラー - {error}", 'danger')
     return render_template('register.html', form=form)
 
 @app.route('/logout')

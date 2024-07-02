@@ -208,16 +208,37 @@ input[type="file"] {
 }
 
 /* ログインリンク */
-.login-link {
+.register-link {
     margin-top: 20px;
     color: #555;
 }
 
-.login-link a {
-    color: #007bff;
-    text-decoration: none;
+/* リンクスタイル */
+.register-link a {
+    color: #007bff !important;
+    text-decoration: none !important;
 }
 
-.login-link a:hover {
-    text-decoration: underline;
+.register-link a:link,
+.register-link a:visited,
+.register-link a:hover,
+.register-link a:active {
+    color: #007bff !important;
+    text-decoration: none !important;
+}
+/* フラッシュメッセージのスタイル */
+.flash {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+.flash.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.flash.danger {
+    background-color: #f8d7da;
+    color: #721c24;
 }
