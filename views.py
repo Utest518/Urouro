@@ -101,12 +101,16 @@ def upload_image():
             filename = secure_filename(file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
-            app.logger.info('ファイルを保存しました: %s', file_path)
+            app.logger.info(f'ファイルを保存しました: {file_path}')
+
+            if not os.path.exists(file_path):
+                app.logger.error(f'ファイルが保存されていません: {file_path}')
+                return jsonify({'error': 'File not saved'})
 
             new_image = Image(filename=filename, user_id=current_user.id)
             db.session.add(new_image)
             db.session.commit()
-            app.logger.info('画像情報をデータベースに保存しました: %s', filename)
+            app.logger.info(f'画像情報をデータベースに保存しました: {filename}')
 
             image = PILImage.open(file_path)
             image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
@@ -146,7 +150,7 @@ def upload_image():
             new_result = Result(status=status, user_id=current_user.id, date=current_time)
             db.session.add(new_result)
             db.session.commit()
-            app.logger.info('検査結果をデータベースに保存しました: %s', status)
+            app.logger.info(f'検査結果をデータベースに保存しました: {status}')
 
             result = {
                 'status': status,
