@@ -1,6 +1,6 @@
 from flask import request, jsonify, render_template, redirect, url_for, flash
 from app import app, db, bcrypt
-from models import User, Result, Image  # Imageモデルをインポート
+from models import User, Result, Image
 from forms import LoginForm, RegisterForm
 from flask_login import login_user, login_required, logout_user, current_user
 from datetime import datetime
@@ -14,6 +14,8 @@ from werkzeug.utils import secure_filename
 import os
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+UPLOAD_FOLDER = 'uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -100,12 +102,10 @@ def upload_image():
         try:
             filename = secure_filename(file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            if not os.path.exists(app.config['UPLOAD_FOLDER']):
+                os.makedirs(app.config['UPLOAD_FOLDER'])
             file.save(file_path)
             app.logger.info(f'ファイルを保存しました: {file_path}')
-
-            if not os.path.exists(file_path):
-                app.logger.error(f'ファイルが保存されていません: {file_path}')
-                return jsonify({'error': 'File not saved'})
 
             new_image = Image(filename=filename, user_id=current_user.id)
             db.session.add(new_image)
