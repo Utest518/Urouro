@@ -86,11 +86,13 @@ def upload():
 @login_required
 def upload_image():
     if 'image' not in request.files:
+        app.logger.error('ファイルがありません。')
         flash('ファイルがありません。', 'danger')
         return redirect(url_for('upload'))
 
     file = request.files['image']
     if file.filename == '':
+        app.logger.error('ファイルが選択されていません。')
         flash('ファイルが選択されていません。', 'danger')
         return redirect(url_for('upload'))
 
@@ -99,9 +101,12 @@ def upload_image():
             filename = secure_filename(file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
+            app.logger.info('ファイルを保存しました: %s', file_path)
+
             new_image = Image(filename=filename, user_id=current_user.id)
             db.session.add(new_image)
             db.session.commit()
+            app.logger.info('画像情報をデータベースに保存しました: %s', filename)
 
             image = PILImage.open(file_path)
             image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
@@ -110,6 +115,7 @@ def upload_image():
             # モデルの読み込み
             pca = joblib.load('pca_model.pkl')
             iso_forest = joblib.load('iso_forest_model.pkl')
+            app.logger.info('モデルを読み込みました')
 
             # 画像データの前処理
             image_pca = pca.transform([image])
@@ -140,6 +146,7 @@ def upload_image():
             new_result = Result(status=status, user_id=current_user.id, date=current_time)
             db.session.add(new_result)
             db.session.commit()
+            app.logger.info('検査結果をデータベースに保存しました: %s', status)
 
             result = {
                 'status': status,
@@ -148,8 +155,9 @@ def upload_image():
             
             return jsonify(result)
         except Exception as e:
-            print(f"Error processing image: {e}")
+            app.logger.error(f"画像処理中のエラー: {e}")
             return jsonify({'error': 'Processing error'})
+    app.logger.warning('ファイルがアップロードされませんでした')
     return jsonify({'error': 'No file uploaded'})
 
 @app.route('/result')
