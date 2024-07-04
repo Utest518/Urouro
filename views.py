@@ -87,6 +87,7 @@ def upload():
 @app.route('/upload_image', methods=['POST'])
 @login_required
 def upload_image():
+    app.logger.info('アップロード開始')
     if 'image' not in request.files:
         app.logger.error('ファイルがありません。')
         flash('ファイルがありません。', 'danger')
@@ -102,8 +103,11 @@ def upload_image():
         try:
             filename = secure_filename(file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            app.logger.info(f'ファイルパス: {file_path}')
             if not os.path.exists(app.config['UPLOAD_FOLDER']):
                 os.makedirs(app.config['UPLOAD_FOLDER'])
+                app.logger.info(f'アップロードフォルダを作成しました: {app.config["UPLOAD_FOLDER"]}')
+            
             file.save(file_path)
             app.logger.info(f'ファイルを保存しました: {file_path}')
 
@@ -124,6 +128,7 @@ def upload_image():
             # 画像データの前処理
             image_pca = pca.transform([image])
             prediction = iso_forest.predict(image_pca)
+            app.logger.info(f'画像処理結果: {prediction}')
 
             status = "正常" if prediction == 1 else "異常"
 
@@ -145,6 +150,7 @@ def upload_image():
             # 日本のタイムゾーンを使用して現在時刻を取得
             jst = pytz.timezone('Asia/Tokyo')
             current_time = datetime.now(jst)
+            app.logger.info(f'現在時刻: {current_time}')
 
             # 結果をデータベースに保存
             new_result = Result(status=status, user_id=current_user.id, date=current_time)
@@ -156,11 +162,12 @@ def upload_image():
                 'status': status,
                 'message': message
             }
-            
+
             return jsonify(result)
         except Exception as e:
             app.logger.error(f"画像処理中のエラー: {e}")
             return jsonify({'error': 'Processing error'})
+    
     app.logger.warning('ファイルがアップロードされませんでした')
     return jsonify({'error': 'No file uploaded'})
 
