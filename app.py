@@ -12,6 +12,10 @@ load_dotenv()
 app = Flask(__name__)
 app.config.from_object(Config)
 
+# UPLOAD_FOLDERの設定
+UPLOAD_FOLDER = os.path.join(os.getcwd(), os.getenv('UPLOAD_FOLDER', 'uploads'))
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 db.init_app(app)
 migrate = Migrate(app, db)
 bcrypt = Bcrypt(app)
